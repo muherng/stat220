@@ -82,7 +82,7 @@ log2 = n*np.log(6) + tmp
 #fact2 = 6**n*np.exp(tmp)
 
 log_bayes = log1 - log2
-print("Question 1 Answer: " + str(np.exp(log_bayes)))
+print("Question 2 Answer: " + str(np.exp(log_bayes)))
 #print(np.exp(log_bayes))    
     
   

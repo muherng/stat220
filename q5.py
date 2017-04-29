@@ -21,13 +21,13 @@ with open('SequenceData.csv','rb') as f:
     for row in reader:
         for j in range(1,k+1):
             if row[j] == 'a':
-                data[i,j] = 1
+                data[i,j] = 0
             if row[j] == 'c':
-                data[i,j] = 2
+                data[i,j] = 1
             if row[j] == 'g':
-                data[i,j] = 3
+                data[i,j] = 2
             if row[j] == 't':
-                data[i,j] = 4
+                data[i,j] = 3
         i += 1
         
 data = data[1:n+1,1:k+1]
@@ -35,12 +35,14 @@ data = data[1:n+1,1:k+1]
 pr = [1,1,1,1]
 theta = np.random.dirichlet(pr,1)
 
-def eff_data(data):
+def eff_data(data,lag):
     n,k = data.shape
-    eff = np.zeros((n,4))
+    eff = np.zeros((4**lag,4))
     for i in range(n):
-        for j in range(k):
-            eff[i,int(data[i,j]-1)] =  eff[i,int(data[i,j]-1)] + 1
+        print("bottleneck")
+        for j in range(k-lag):
+            ind = int(''.join(map(str, data[i,j:j+lag])).replace(".0",""),4)
+            eff[ind,int(data[i,j+lag])] += 1
     return eff
                 
 
@@ -52,47 +54,30 @@ def llikelihood(data,theta):
         ll = ll + np.log(SPST.multinomial.pmf(eff[i,:],np.sum(eff[i,:]),theta))
     return ll
 
-print(llikelihood(data,theta)) 
+#print(llikelihood(data,theta)) 
+#
+bottom = 13
+trunc = bottom + 1
+eff_all = []
+for lag in range(bottom,trunc):
+    eff_all.append(eff_data(data,lag))
 
-eff = eff_data(data)
-q1_sum = eff.sum(axis=0)
-like = SPST.multinomial.pmf(q1_sum,np.sum(q1_sum),theta)
-print(like)
+log_list = []
+for t in range(trunc-bottom):
+    print("moving")
+    eff = eff_all[t]
+    tmp = 0
+    for i in range(4**(t+bottom)):
+        if i%1000 == 0:
+            print(i)
+        den = np.sum([np.log(y) for y in range(1,int(np.sum(eff[i,:])+4))])
+        num = 0
+        for j in range(4):
+            num += np.sum([np.log(y) for y in range(1,int(eff[i,j]+1))])
+        tmp += num - den
+    log_list.append(4**(t+bottom)*np.log(6) + tmp)
 
-den = np.sum([np.log(y) for y in range(1,int(np.sum(q1_sum)+4))])
-num = 0
-for j in range(4):
-    num += np.sum([np.log(y) for y in range(1,int(q1_sum[j]+1))])
-log1 = np.log(6) + num-den
-#fact1 = 6*np.exp(num - den)
-
-tmp = 0
-for i in range(n):
-    den = np.sum([np.log(y) for y in range(1,int(np.sum(eff[i,:])+4))])
-    num = 0
-    for j in range(4):
-        num += np.sum([np.log(y) for y in range(1,int(eff[i,j]+1))])
-    tmp += num - den
-log2 = n*np.log(6) + tmp
-#fact2 = 6**n*np.exp(tmp)
-
-log_bayes = log1 - log2
-#print(np.exp(log_bayes)) 
-
-tran = np.zeros((4,4))
-for i in range(n):
-    for j in range(k-1):
-        tran[int(data[i,j]-1),int(data[i,j+1]-1)] += 1
-    
-
-num = 0
-den = 0
-for i in range(4):
-    den += np.sum([np.log(y) for y in range(1,int(np.sum(tran[i,:])+4))])
-    for j in range(4):
-        num +=  np.sum([np.log(y) for y in range(1,int(tran[i,j]+1))])
-log_tran = 4*np.log(6) + num - den
-
-print(np.exp(log1 - log_tran))         
-
+log_bayes = [x1 - x2 for (x1,x2) in zip(log_list, [log_list[len(log_list)-1]]*len(log_list))]
+print("Bayes Factor: ")
+print(log_bayes)
         

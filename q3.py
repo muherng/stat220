@@ -79,23 +79,18 @@ def dir_process(pr,num_draws,alpha):
             base = 1 - np.sum(buffet)/(i + alpha)
             roulette = [float(b)/(i + alpha) for b in buffet] + [base]
             roulette = [float(r)/np.sum(roulette) for r in roulette]
-            #print(roulette)
             try:
                 chosen = int(np.where(np.random.multinomial(1,roulette) == 1)[0])
             except ValueError:
                 print("ValueError")
             if chosen == len(roulette)-1:
-                #print("base")
                 draw = np.random.dirichlet(pr,1)
                 values.append(draw)
                 buffet.append(1)
             else:
-                #print("cluster")
                 draw = values[chosen]
                 buffet[chosen] = buffet[chosen] + 1
         theta.append(draw)
-        #print('theta')
-        #print(theta)
     return theta
     
 def bvi(theta):
@@ -119,7 +114,6 @@ def bvi(theta):
         sub = []
         for i in range(len(theta)):
             if np.array_equal(v,theta[i]):
-                #print("APPEND SUB")
                 sub.append(i)
         index.append(sub)
     return (buffet,values,index)
@@ -151,29 +145,17 @@ def gibbs(data,pr,alpha,iterations):
             fact = np.exp(num - den)
             discrete = []
             for j in range(len(values)):
-                #print("complicated")
-                #print(index[j])
-                #print(eff[index[j],:])
-                #print(np.exp(llike(eff[index[j],:],np.take(theta,index[j]))))
-                
                 theta = np.array(theta)
                 discrete.append(np.exp(llike(eff[i,:],values[j]))*float(buffet[j])/n)
                 theta = theta.tolist()
             normalize = float(6*alpha)/(alpha+n-1)*fact + np.sum(discrete)
             roulette = [float(d)/(normalize) for d in discrete] + [float(6*alpha)/(alpha+n-1)*fact/normalize]
             roulette = [float(r)/np.sum(roulette) for r in roulette]
-            #print("roulette")
-            #print(roulette) 
             chosen = int(np.where(np.random.multinomial(1,roulette) == 1)[0])
             if chosen == len(roulette) - 1:
-                #print("base")
                 theta[i] = np.random.dirichlet(np.add(pr,eff[i,:]),1)
             else:
-                #print("cluster")
                 theta[i] = values[chosen]
-        #print(llikelihood(data,theta))
-        #print("Theta")
-        #print(theta)
         theta = np.array(theta)
         ll_list.append(llikelihood(data,theta))
         theta = theta.tolist()
@@ -185,4 +167,3 @@ iterations = 50
 theta,ll_list = gibbs(data,pr,alpha,iterations)
 plt.plot(ll_list)
 plt.show()
-#print(theta)

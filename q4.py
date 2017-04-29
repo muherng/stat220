@@ -1,10 +1,5 @@
 #!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 28 15:02:21 2017
-
-@author: morrisyau
-"""
+# -*- coding: utf-8 -*
 
 import csv
 import numpy as np
@@ -82,9 +77,22 @@ log2 = n*np.log(6) + tmp
 #fact2 = 6**n*np.exp(tmp)
 
 log_bayes = log1 - log2
-print("Question 1 Answer: " + str(np.exp(log_bayes)))
-#print(np.exp(log_bayes))    
+#print(np.exp(log_bayes)) 
+
+tran = np.zeros((4,4))
+for i in range(n):
+    for j in range(k-1):
+        tran[int(data[i,j]-1),int(data[i,j+1]-1)] += 1
     
-  
+
+num = 0
+den = 0
+for i in range(4):
+    den += np.sum([np.log(y) for y in range(1,int(np.sum(tran[i,:])+4))])
+    for j in range(4):
+        num +=  np.sum([np.log(y) for y in range(1,int(tran[i,j]+1))])
+log_tran = 4*np.log(6) + num - den
+
+print(np.exp(log1 - log_tran))         
 
         
