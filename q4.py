@@ -64,7 +64,6 @@ num = 0
 for j in range(4):
     num += np.sum([np.log(y) for y in range(1,int(q1_sum[j]+1))])
 log1 = np.log(6) + num-den
-#fact1 = 6*np.exp(num - den)
 
 tmp = 0
 for i in range(n):
@@ -74,10 +73,8 @@ for i in range(n):
         num += np.sum([np.log(y) for y in range(1,int(eff[i,j]+1))])
     tmp += num - den
 log2 = n*np.log(6) + tmp
-#fact2 = 6**n*np.exp(tmp)
 
-log_bayes = log1 - log2
-#print(np.exp(log_bayes)) 
+log_bayes = log1 - log2 
 
 tran = np.zeros((4,4))
 for i in range(n):
@@ -93,6 +90,7 @@ for i in range(4):
         num +=  np.sum([np.log(y) for y in range(1,int(tran[i,j]+1))])
 log_tran = 4*np.log(6) + num - den
 
+print("Bayes Factor: ")
 print(np.exp(log1 - log_tran))         
 
         
